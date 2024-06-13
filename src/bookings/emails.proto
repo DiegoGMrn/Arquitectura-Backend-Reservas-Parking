@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package notifications;
+
+service EmailsService {
+    rpc sendEmailInformation (NotificationRequest) returns (NotificationResponse);
+}
+
+message NotificationRequest {
+    string name = 1;
+    string email = 2;
+    string qrCode = 3;
+    string checkoutUrl = 4;
+    string dateHourStart = 5;
+    string zoneName = 6;
+    string patente = 7;
+}
+
+message NotificationResponse {
+    bool success = 1;
+    string message = 2;
+}

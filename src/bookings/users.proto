@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package user;
+
+import "google/protobuf/wrappers.proto";
+
+
+service UserService {
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
+  rpc GetUser (GetUserRequest) returns (GetUsersResponse);
+}
+
+message User {
+  uint64 id = 1;
+  string name = 2;
+  string email = 3;
+  string password = 4;
+  bool tipoUser = 5;
+  string created_at = 6;
+  string updated_at = 7;
+  string deleted_at = 8;
+}
+
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+  string password = 3;
+  bool tipoUser = 4;
+}
+
+message CreateUserResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetUsersResponse {
+  repeated User users = 1;
+}
+
+message GetUserRequest {
+  uint64 id = 1;
+}
+

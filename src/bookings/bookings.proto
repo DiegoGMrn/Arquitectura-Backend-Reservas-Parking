@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package bookings;
+
+import "google/protobuf/timestamp.proto";
+
+service BookingsService {
+    rpc create (inputCreateBooking) returns (createBookingResponse);
+}
+
+message inputCreateBooking {
+    string dateHourStart = 1;
+    string patente = 2;
+    int32 idZone = 3;
+    int32 idUser = 4;
+}
+
+message createBookingResponse {
+    bool success = 1;
+}
