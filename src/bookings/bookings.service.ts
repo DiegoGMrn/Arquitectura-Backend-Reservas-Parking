@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Bookings } from './entities/bookings.entity';
 import {  Repository } from 'typeorm';
-import { EmailsServiceClient, UsersServiceClient, ZonesServiceClient, createBookingResponse, inputCreateBooking, inputFindOneBooking } from './bookings.pb';
+import { EmailsServiceClient, UsersServiceClient, Zones, ZonesServiceClient, arrayBookings, createBookingResponse, inputCreateBooking, inputFindMultipleZones, inputFindOneBooking } from './bookings.pb';
 import { ClientGrpcProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import * as QRCode from 'qrcode';
 import { formatISO, parseISO } from 'date-fns';
@@ -109,7 +109,47 @@ export class BookingsService {
     }
 
     public async findOne(booking: inputFindOneBooking): Promise<Bookings> {
-        return this.bookingsRepository.findOne({ where: { id: booking.id } });
+        const bookingsResponse: Bookings = await this.bookingsRepository.findOne({ where: { id: booking.id } });
+        const zone = await lastValueFrom(this.zonesService.findOne({ id: bookingsResponse.idZone }));
+        const enrichedBookings = {
+            ...bookingsResponse,
+            zone,
+        };
+      
+        return enrichedBookings;
 
+    }
+
+    public async findAll(): Promise<arrayBookings> {
+        const bookingsResponse: arrayBookings = { bookings: await this.bookingsRepository.find() };
+
+        const zoneIds = bookingsResponse.bookings.map((booking: Bookings) => booking.idZone);
+        const uniqueZoneIds: inputFindMultipleZones = {ids: Array.from(new Set(zoneIds))};
+        const zonesResponse = await firstValueFrom(this.zonesService.findMultiple(uniqueZoneIds));
+        const zonesMap = new Map(zonesResponse.zones.map((zone: Zones) => [zone.id, zone]));
+
+        const enrichedBookings = bookingsResponse.bookings.map((booking: Bookings) => ({
+            ...booking,
+            zone: zonesMap.get(booking.idZone),
+        }));
+        console.log(enrichedBookings[0].zone);
+        return { bookings: enrichedBookings };
+
+    }
+
+    public async findAllByUser(booking: inputFindOneBooking): Promise<arrayBookings> {
+        const bookingsResponse : arrayBookings = { bookings: await this.bookingsRepository.find({ where: { idUser: booking.id } }) };
+        
+        const zoneIds = bookingsResponse.bookings.map((booking: Bookings) => booking.idZone);
+        const uniqueZoneIds: inputFindMultipleZones = {ids: Array.from(new Set(zoneIds))};
+        const zonesResponse = await firstValueFrom(this.zonesService.findMultiple(uniqueZoneIds));
+        const zonesMap = new Map(zonesResponse.zones.map((zone: Zones) => [zone.id, zone]));
+
+        const enrichedBookings = bookingsResponse.bookings.map((booking: Bookings) => ({
+            ...booking,
+            zone: zonesMap.get(booking.idZone),
+        }));
+        console.log(enrichedBookings[0].zone);
+        return { bookings: enrichedBookings };
     }
 }

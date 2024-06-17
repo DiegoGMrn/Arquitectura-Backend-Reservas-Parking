@@ -2,10 +2,29 @@ syntax = "proto3";
 
 package bookings;
 
-import "google/protobuf/timestamp.proto";
 
 service BookingsService {
     rpc create (inputCreateBooking) returns (createBookingResponse);
+    rpc findOne (inputFindOneBooking) returns (Bookings);
+    rpc findAll (Empty) returns (arrayBookings);
+    rpc findAllByUser (inputFindOneBooking) returns (arrayBookings);
+}
+
+message Empty {}
+
+message Bookings {
+    int32 id = 1;
+    string dateHourStart = 2;
+    string dateHourFinish = 3;
+    string status = 4;
+    string patente = 5;
+    int32 idZone = 6;
+    int32 idUser = 7;
+    Zones zone = 8;
+}
+
+message arrayBookings {
+    repeated Bookings bookings = 1;
 }
 
 message inputCreateBooking {
@@ -17,4 +36,15 @@ message inputCreateBooking {
 
 message createBookingResponse {
     bool success = 1;
+}
+
+message inputFindOneBooking {
+    int32 id = 1;
+}
+
+message Zones {
+    int32 id = 1;
+    string name = 2;
+    int32 cantEstacionamientosTotales = 3;
+    int32 cantEstacionamientosOcupados = 4;
 }

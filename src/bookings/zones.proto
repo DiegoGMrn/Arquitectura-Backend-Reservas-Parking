@@ -9,6 +9,7 @@ service ZonesService {
     rpc create (inputCreateZone) returns (CreateZoneResponse);
     rpc UpdateAvailableSpots(UpdateAvailableSpotsRequest) returns (UpdateAvailableSpotsResponse);
     rpc findOne (inputFindOne) returns (Zones);
+    rpc findMultiple (inputFindMultipleZones) returns (arrayZones);
 }
 
 message Empty {}
@@ -20,10 +21,18 @@ message Zones {
     int32 cantEstacionamientosOcupados = 4;
 }
 
+message inputFindMultipleZones {
+    repeated int32 ids = 1;
+  }
+
 message inputCreateZone {
     string name = 1;
     int32 cantEstacionamientosTotales = 2;
     int32 cantEstacionamientosOcupados = 3;
+}
+
+message arrayZones {
+    repeated Zones zones = 1;
 }
 
 message CreateZoneResponse {

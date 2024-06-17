@@ -9,6 +9,7 @@ export interface Bookings {
     patente: string;
     idZone: number;
     idUser: number;
+    zone?: Zones;
 }
 
 export interface Zones {
@@ -37,14 +38,27 @@ export interface inputFindOneBooking {
     id: number;
 }
 
+export interface arrayBookings {
+    bookings: Bookings[];
+}
+
 export interface BookingsServiceClient {
-    findAll(request: Empty): Observable<Bookings>;
+    findAll(request: Empty): Observable<arrayBookings>;
     create(request: inputCreateBooking): Observable<createBookingResponse>;
+}
+
+export interface inputFindMultipleZones {
+    ids: number[];
 }
 
 export interface ZonesServiceClient {
     updateAvailableSpots(request: UpdateAvailableSpotsRequest): Observable<UpdateAvailableSpotsResponse>;
     findOne(request: inputFindOne): Observable<Zones>;
+    findMultiple(request: inputFindMultipleZones): Observable<arrayZones>;
+}
+
+export interface arrayZones {
+    zones: Zones[];
 }
 
 export interface UpdateAvailableSpotsRequest {
