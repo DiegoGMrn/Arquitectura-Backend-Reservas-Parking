@@ -33,6 +33,7 @@ export interface inputCreateBooking {
 
 export interface createBookingResponse {
     success: boolean;
+    message?: string;
 }
 
 export interface inputFindOneBooking {
@@ -57,6 +58,12 @@ export interface inputCheckOutBooking {
     dateHourFinish: string;
 }
 
+export interface checkOutBookingResponse {
+    success: boolean;
+    message?: string;
+    booking?: Bookings;
+}
+
 export interface ZonesServiceClient {
     updateAvailableSpots(request: UpdateAvailableSpotsRequest): Observable<UpdateAvailableSpotsResponse>;
     findOne(request: inputFindOne): Observable<Zones>;
@@ -74,6 +81,7 @@ export interface UpdateAvailableSpotsRequest {
 
 export interface UpdateAvailableSpotsResponse {
     success: boolean;
+    message?: string;
 }
 
 export interface UsersServiceClient {

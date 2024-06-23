@@ -8,7 +8,7 @@ service BookingsService {
     rpc findOne (inputFindOneBooking) returns (Bookings);
     rpc findAll (Empty) returns (arrayBookings);
     rpc findAllByUser (inputFindOneBooking) returns (arrayBookings);
-    rpc checkOut (inputCheckOutBooking) returns (Bookings);
+    rpc checkOut (inputCheckOutBooking) returns (checkOutBookingResponse);
 }
 
 message Empty {}
@@ -21,8 +21,13 @@ message Bookings {
     string patente = 5;
     int32 idZone = 6;
     int32 idUser = 7;
-    Zones zone = 8;
     int32 amount = 9;
+}
+
+message checkOutBookingResponse {
+    bool success = 1;
+    string message = 2;
+    Bookings booking = 3;
 }
 
 message arrayBookings {
@@ -43,6 +48,7 @@ message inputCreateBooking {
 
 message createBookingResponse {
     bool success = 1;
+    string message = 2;
 }
 
 message inputFindOneBooking {

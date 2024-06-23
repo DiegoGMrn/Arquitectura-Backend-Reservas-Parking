@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Bookings } from './entities/bookings.entity';
 import {  Repository } from 'typeorm';
-import { EmailsServiceClient, UsersServiceClient, Zones, ZonesServiceClient, arrayBookings, createBookingResponse, inputCheckOutBooking, inputCreateBooking, inputFindMultipleZones, inputFindOneBooking } from './bookings.pb';
+import { EmailsServiceClient, UsersServiceClient, Zones, ZonesServiceClient, arrayBookings, checkOutBookingResponse, createBookingResponse, inputCheckOutBooking, inputCreateBooking, inputFindMultipleZones, inputFindOneBooking } from './bookings.pb';
 import { ClientGrpcProxy } from '@nestjs/microservices';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
@@ -49,7 +49,7 @@ export class BookingsService {
             );
               
             if (!parkingResponse.success) {
-                throw new Error('No available parking spots');
+                throw new Error(parkingResponse.message);
             }
 
             const newBooking = await queryRunner.manager.save(Bookings, {
@@ -59,6 +59,14 @@ export class BookingsService {
 
             const zone = await lastValueFrom(this.zonesService.findOne({ id: newBooking.idZone }));
             const user = await lastValueFrom(this.usersService.GetUser({ id: newBooking.idUser }));
+
+            if (!user.users) {
+                throw new Error('User not found');
+            }
+
+            if (!zone) {
+                throw new Error('Zone not found');
+            }
 
             const token = await this.jwtService.signAsync({ 
                 bookingId: newBooking.id,
@@ -99,12 +107,15 @@ export class BookingsService {
             console.log(error);
             await queryRunner.rollbackTransaction();
 
-            await lastValueFrom(
-                this.zonesService.reduceReservedSpots({ zoneId: booking.idZone }),
-            );
+            if(error.message !== 'No available parking spots' && error.message !== 'Zone not found' && error.message !== 'User not found') {
+                await lastValueFrom(
+                    this.zonesService.reduceReservedSpots({ zoneId: booking.idZone }),
+                );
+            }
 
             const response: createBookingResponse = {
                 success: false,
+                message: error.message,
             }
             return response;
         } finally {
@@ -157,7 +168,7 @@ export class BookingsService {
         return { bookings: enrichedBookings };
     }
 
-    public async checkOut(booking: inputCheckOutBooking): Promise<Bookings> {
+    public async checkOut(booking: inputCheckOutBooking): Promise<checkOutBookingResponse> {
         const queryRunner = this.bookingsRepository.manager.connection.createQueryRunner();
 
         await queryRunner.connect();
@@ -201,12 +212,20 @@ export class BookingsService {
                 zone,
             };
       
-        return enrichedBookings;
+            const response: checkOutBookingResponse = {
+                success: true,
+                booking: enrichedBookings,
+            }
+            return response;
 
         } catch (error) {
             console.log(error);
             await queryRunner.rollbackTransaction();
-            return null;
+            const response: checkOutBookingResponse = {
+                success: false,
+                message: error.message,
+            }
+            return response;
             
         } finally {
             await queryRunner.release();

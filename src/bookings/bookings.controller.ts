@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { GrpcMethod } from '@nestjs/microservices';
-import { Bookings, Empty, arrayBookings, createBookingResponse, inputCheckOutBooking, inputCreateBooking, inputFindOneBooking } from './bookings.pb';
+import { Bookings, Empty, arrayBookings, checkOutBookingResponse, createBookingResponse, inputCheckOutBooking, inputCreateBooking, inputFindOneBooking } from './bookings.pb';
 
 @Controller('bookings')
 export class BookingsController {
@@ -31,7 +31,7 @@ export class BookingsController {
     }
 
     @GrpcMethod('BookingsService', 'checkOut')
-    async checkOut(data: inputCheckOutBooking): Promise<Bookings> {
+    async checkOut(data: inputCheckOutBooking): Promise<checkOutBookingResponse> {
         const response = await this.bookingsService.checkOut(data);
         return response;
     }
