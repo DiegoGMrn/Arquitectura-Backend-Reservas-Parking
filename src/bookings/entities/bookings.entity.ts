@@ -16,4 +16,6 @@ export class Bookings {
     idZone: number;
     @Column()
     idUser: number;
+    @Column({ default: 0 })
+    amount: number;
 }

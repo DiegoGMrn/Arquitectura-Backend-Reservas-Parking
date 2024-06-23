@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Bookings } from './entities/bookings.entity';
 import {  Repository } from 'typeorm';
-import { EmailsServiceClient, UsersServiceClient, Zones, ZonesServiceClient, arrayBookings, createBookingResponse, inputCreateBooking, inputFindMultipleZones, inputFindOneBooking } from './bookings.pb';
+import { EmailsServiceClient, UsersServiceClient, Zones, ZonesServiceClient, arrayBookings, createBookingResponse, inputCheckOutBooking, inputCreateBooking, inputFindMultipleZones, inputFindOneBooking } from './bookings.pb';
 import { ClientGrpcProxy } from '@nestjs/microservices';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
@@ -99,6 +99,10 @@ export class BookingsService {
             console.log(error);
             await queryRunner.rollbackTransaction();
 
+            await lastValueFrom(
+                this.zonesService.reduceReservedSpots({ zoneId: booking.idZone }),
+            );
+
             const response: createBookingResponse = {
                 success: false,
             }
@@ -151,5 +155,62 @@ export class BookingsService {
         }));
         console.log(enrichedBookings[0].zone);
         return { bookings: enrichedBookings };
+    }
+
+    public async checkOut(booking: inputCheckOutBooking): Promise<Bookings> {
+        const queryRunner = this.bookingsRepository.manager.connection.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const dateHourFinish = formatISO(parseISO(booking.dateHourFinish));
+            const bookingResponse = await this.bookingsRepository.findOne({ where: { id: booking.id } });
+            
+            if(!bookingResponse) {
+                throw new Error('Booking not found');
+            }
+
+            if(bookingResponse.status === 'finished') {
+                throw new Error('Booking already finished');
+            }
+            
+            const time = Math.floor((new Date(dateHourFinish).getTime() - new Date(bookingResponse.dateHourStart).getTime()) / 60000);
+            const amount = Math.ceil(time / 30) * Number(process.env.AMOUNT_PER_HALF_HOUR);
+
+            const updatedBooking = await queryRunner.manager.save(Bookings, {
+                ...bookingResponse,
+                dateHourFinish,
+                amount,
+                status: 'finished',
+            });
+
+            const parkingResponse = await lastValueFrom(
+                this.zonesService.reduceReservedSpots({ zoneId: updatedBooking.idZone }),
+            );
+
+            if (!parkingResponse.success) {
+                throw new Error('Failed to reduce parking spots');
+            }
+
+            await queryRunner.commitTransaction();
+            
+            const zone = await lastValueFrom(this.zonesService.findOne({ id: updatedBooking.idZone }));
+            const enrichedBookings = {
+                ...updatedBooking,
+                zone,
+            };
+      
+        return enrichedBookings;
+
+        } catch (error) {
+            console.log(error);
+            await queryRunner.rollbackTransaction();
+            return null;
+            
+        } finally {
+            await queryRunner.release();
+        }
+        
     }
 }

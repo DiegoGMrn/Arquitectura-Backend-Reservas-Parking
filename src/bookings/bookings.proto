@@ -8,6 +8,7 @@ service BookingsService {
     rpc findOne (inputFindOneBooking) returns (Bookings);
     rpc findAll (Empty) returns (arrayBookings);
     rpc findAllByUser (inputFindOneBooking) returns (arrayBookings);
+    rpc checkOut (inputCheckOutBooking) returns (Bookings);
 }
 
 message Empty {}
@@ -21,10 +22,16 @@ message Bookings {
     int32 idZone = 6;
     int32 idUser = 7;
     Zones zone = 8;
+    int32 amount = 9;
 }
 
 message arrayBookings {
     repeated Bookings bookings = 1;
+}
+
+message inputCheckOutBooking {
+    int32 id = 1;
+    string dateHourFinish = 2;
 }
 
 message inputCreateBooking {

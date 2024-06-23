@@ -9,6 +9,7 @@ export interface Bookings {
     patente: string;
     idZone: number;
     idUser: number;
+    amount?: number;
     zone?: Zones;
 }
 
@@ -51,10 +52,16 @@ export interface inputFindMultipleZones {
     ids: number[];
 }
 
+export interface inputCheckOutBooking {
+    id: number;
+    dateHourFinish: string;
+}
+
 export interface ZonesServiceClient {
     updateAvailableSpots(request: UpdateAvailableSpotsRequest): Observable<UpdateAvailableSpotsResponse>;
     findOne(request: inputFindOne): Observable<Zones>;
     findMultiple(request: inputFindMultipleZones): Observable<arrayZones>;
+    reduceReservedSpots(request: UpdateAvailableSpotsRequest): Observable<UpdateAvailableSpotsResponse>;
 }
 
 export interface arrayZones {

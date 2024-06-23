@@ -10,6 +10,7 @@ service ZonesService {
     rpc UpdateAvailableSpots(UpdateAvailableSpotsRequest) returns (UpdateAvailableSpotsResponse);
     rpc findOne (inputFindOne) returns (Zones);
     rpc findMultiple (inputFindMultipleZones) returns (arrayZones);
+    rpc reduceReservedSpots (UpdateAvailableSpotsRequest) returns (UpdateAvailableSpotsResponse);
 }
 
 message Empty {}
