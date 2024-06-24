@@ -80,10 +80,10 @@ export class BookingsService {
             const checkoutUrl = `${process.env.FRONT_CHECKOUT_URL}?token=${token}`;
 
             const qrCode = await QRCode.toDataURL(checkoutUrl);
-            
+
             const notificationRequest = {
-                name: user.users[0].name,
-                email: user.users[0].email,
+                name: user.users.name,
+                email: user.users.email,
                 qrCode: qrCode,
                 checkoutUrl: checkoutUrl,
                 dateHourStart: newBooking.dateHourStart.toLocaleString('es-CL', { timeZone: 'America/Santiago' }),
