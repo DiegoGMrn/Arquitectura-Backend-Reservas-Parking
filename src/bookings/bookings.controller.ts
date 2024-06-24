@@ -36,4 +36,10 @@ export class BookingsController {
         return response;
     }
 
+    @GrpcMethod('BookingsService', 'confirmBooking')
+    async confirmBooking(data: inputFindOneBooking): Promise<checkOutBookingResponse> {
+        const response = await this.bookingsService.confirmBooking(data);
+        return response;
+    }
+
 }

@@ -9,6 +9,7 @@ service BookingsService {
     rpc findAll (Empty) returns (arrayBookings);
     rpc findAllByUser (inputFindOneBooking) returns (arrayBookings);
     rpc checkOut (inputCheckOutBooking) returns (checkOutBookingResponse);
+    rpc confirmBooking (inputFindOneBooking) returns (checkOutBookingResponse);
 }
 
 message Empty {}

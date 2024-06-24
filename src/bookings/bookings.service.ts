@@ -193,7 +193,7 @@ export class BookingsService {
                 ...bookingResponse,
                 dateHourFinish,
                 amount,
-                status: 'finished',
+                status: 'checked-out',
             });
 
             const parkingResponse = await lastValueFrom(
@@ -203,6 +203,57 @@ export class BookingsService {
             if (!parkingResponse.success) {
                 throw new Error('Failed to reduce parking spots');
             }
+
+            await queryRunner.commitTransaction();
+            
+            const zone = await lastValueFrom(this.zonesService.findOne({ id: updatedBooking.idZone }));
+            const enrichedBookings = {
+                ...updatedBooking,
+                zone,
+            };
+      
+            const response: checkOutBookingResponse = {
+                success: true,
+                booking: enrichedBookings,
+            }
+            return response;
+
+        } catch (error) {
+            console.log(error);
+            await queryRunner.rollbackTransaction();
+            const response: checkOutBookingResponse = {
+                success: false,
+                message: error.message,
+            }
+            return response;
+            
+        } finally {
+            await queryRunner.release();
+        }
+        
+    }
+
+    public async confirmBooking(booking: inputFindOneBooking): Promise<checkOutBookingResponse> {
+        const queryRunner = this.bookingsRepository.manager.connection.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const bookingResponse = await this.bookingsRepository.findOne({ where: { id: booking.id } });
+            
+            if(!bookingResponse) {
+                throw new Error('Booking not found');
+            }
+
+            if(bookingResponse.status !== 'checked-out') {
+                throw new Error('Booking not checked-out yet');
+            }
+
+            const updatedBooking = await queryRunner.manager.save(Bookings, {
+                ...bookingResponse,
+                status: 'finished',
+            });
 
             await queryRunner.commitTransaction();
             
