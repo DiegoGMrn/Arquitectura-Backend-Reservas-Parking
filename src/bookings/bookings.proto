@@ -21,9 +21,9 @@ message Bookings {
     string patente = 5;
     int32 idZone = 6;
     int32 idUser = 7;
+    Zones zone = 8;
     int32 amount = 9;
 }
-
 message checkOutBookingResponse {
     bool success = 1;
     string message = 2;
