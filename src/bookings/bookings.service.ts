@@ -196,14 +196,6 @@ export class BookingsService {
                 status: 'checked-out',
             });
 
-            const parkingResponse = await lastValueFrom(
-                this.zonesService.reduceReservedSpots({ zoneId: updatedBooking.idZone }),
-            );
-
-            if (!parkingResponse.success) {
-                throw new Error('Failed to reduce parking spots');
-            }
-
             await queryRunner.commitTransaction();
             
             const zone = await lastValueFrom(this.zonesService.findOne({ id: updatedBooking.idZone }));
@@ -248,6 +240,14 @@ export class BookingsService {
 
             if(bookingResponse.status !== 'checked-out') {
                 throw new Error('Booking not checked-out yet');
+            }
+
+            const parkingResponse = await lastValueFrom(
+                this.zonesService.reduceReservedSpots({ zoneId: booking.id }),
+            );
+
+            if (!parkingResponse.success) {
+                throw new Error('Failed to reduce parking spots');
             }
 
             const updatedBooking = await queryRunner.manager.save(Bookings, {
