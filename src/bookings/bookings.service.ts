@@ -243,7 +243,7 @@ export class BookingsService {
             }
 
             const parkingResponse = await lastValueFrom(
-                this.zonesService.reduceReservedSpots({ zoneId: booking.id }),
+                this.zonesService.reduceReservedSpots({ zoneId: bookingResponse.idZone }),
             );
 
             if (!parkingResponse.success) {
