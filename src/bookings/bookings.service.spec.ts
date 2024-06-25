@@ -110,7 +110,7 @@ describe('BookingsService', () => {
       jest.spyOn(mockQueryRunner.manager, 'save').mockResolvedValue({ id: 1, ...bookingData });
       jest.spyOn(service['zonesService'], 'reduceReservedSpots').mockReturnValue(of({ success: true }));
       jest.spyOn(service['zonesService'], 'findOne').mockReturnValue(of({ id: 1, name: 'Zone 1', cantEstacionamientosTotales: 30, cantEstacionamientosOcupados: 10 } as Zones));
-      jest.spyOn(service['usersService'], 'GetUser').mockReturnValue(of({ users: { id: 1, name: 'John Doe', email: 'john@example.com' } as User } as GetUserResponse));
+      jest.spyOn(service['usersService'], 'GetUser').mockReturnValue(of({ users: [{ id: 1, name: 'John Doe', email: 'john@example.com', } as User] } as unknown as GetUserResponse));
       jest.spyOn(jwtService, 'signAsync').mockResolvedValue('mockToken');
       (QRCode.toDataURL as jest.Mock).mockResolvedValue('mockQRCode');
       jest.spyOn(service['notificationsService'], 'sendEmailInformation').mockReturnValue(of({ success: true } as NotificationResponse));
